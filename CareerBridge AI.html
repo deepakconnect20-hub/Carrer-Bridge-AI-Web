@@ -1,0 +1,1852 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareerBridge AI — Bridging Students to the Right Career</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4F46E5', // Indigo-600
+                        secondary: '#9333EA', // Purple-600
+                        surface: '#F8FAFC',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Smooth transitions */
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 h-full flex flex-col antialiased">
+
+    <!-- Root App Mount -->
+    <div id="root" class="h-full flex flex-col flex-1"></div>
+
+    <!-- Application Script -->
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, useRef } = React;
+
+        /* ========================================================================
+           DEMO DATA & CONSTANTS (20+ Careers, Scholarships, Courses, Colleges, Skills)
+           ======================================================================== */
+        const DEMO_CAREERS = [
+            {
+                id: 1,
+                name: "Software Developer",
+                category: "Technology",
+                matchScore: 94,
+                description: "Design, build, and test software applications, websites, and systems to solve real-world problems.",
+                education: "B.Tech / BCA / B.Sc. Computer Science or Self-Taught with Portfolio",
+                subjects: ["Mathematics", "Computer Science", "Logic"],
+                skills: ["Programming", "Problem Solving", "Teamwork"],
+                courses: ["Full Stack Web Development", "Python for Everybody", "Data Structures & Algorithms"],
+                exams: ["JEE Main", "State CETs", "Coding Bootcamps"],
+                opportunities: ["IT Services", "Product Startups", "Remote Freelancing", "MNCs"],
+                resources: ["freeCodeCamp", "LeetCode", "MDN Web Docs"],
+                related: ["Data Analyst", "Cybersecurity Analyst", "AI/ML Engineer"],
+                roadmap: ["Class 10/12 Science/Math", "Learn Programming Basics (Python/JS)", "Build 3+ Mini Projects", "Internship / Open Source", "Junior Software Engineer"]
+            },
+            {
+                id: 2,
+                name: "Data Analyst",
+                category: "Technology",
+                matchScore: 89,
+                description: "Interpret complex datasets to help organizations make informed strategic business decisions.",
+                education: "B.Sc Statistics / B.Tech / B.Com with Analytics Certification",
+                subjects: ["Mathematics", "Statistics", "Economics"],
+                skills: ["Analytical Thinking", "Mathematics", "Problem Solving"],
+                courses: ["Google Data Analytics", "SQL & Tableau Masterclass", "Python for Data Analysis"],
+                exams: ["University Entrance", "Graduate Aptitude Tests"],
+                opportunities: ["E-commerce", "Banking & Finance", "Healthcare Analytics", "Consulting"],
+                resources: ["Kaggle", "Coursera", "SQLZoo"],
+                related: ["Software Developer", "Financial Analyst", "AI/ML Engineer"],
+                roadmap: ["Strong Math Foundation", "Learn SQL & Excel", "Master Data Visualization (Tableau/PowerBI)", "Build Portfolio Dashboard", "Data Analyst Role"]
+            },
+            {
+                id: 3,
+                name: "Cybersecurity Analyst",
+                category: "Technology",
+                matchScore: 86,
+                description: "Protect computer networks, systems, and sensitive data from cyber threats and security breaches.",
+                education: "B.Tech in IT / Computer Science / Cyber Security Certifications",
+                subjects: ["Computer Networks", "Mathematics", "Operating Systems"],
+                skills: ["Problem Solving", "Analytical Thinking", "Programming"],
+                courses: ["CompTIA Security+", "Ethical Hacking Basics", "Network Security Fundamentals"],
+                exams: ["GATE", "CEH Certification", "CISSP"],
+                opportunities: ["Government Defense", "Banking & Fintech", "IT Security Firms"],
+                resources: ["TryHackMe", "HackTheBox", "Cisco Networking Academy"],
+                related: ["Software Developer", "Network Engineer"],
+                roadmap: ["Networking Basics (TCP/IP)", "Linux & OS Fundamentals", "Security Certifications", "Capture The Flag (CTF) Practice", "Security Analyst"]
+            },
+            {
+                id: 4,
+                name: "AI/ML Engineer",
+                category: "Technology",
+                matchScore: 91,
+                description: "Build intelligent algorithms and machine learning models that enable computers to learn from data.",
+                education: "B.Tech in Computer Science / AI / Data Science or M.Tech",
+                subjects: ["Advanced Mathematics", "Linear Algebra", "Computer Science"],
+                skills: ["Programming", "Analytical Thinking", "Mathematics"],
+                courses: ["Deep Learning Specialization", "Machine Learning by Stanford", "TensorFlow Developer"],
+                exams: ["JEE Advanced", "GATE", "AI University Exams"],
+                opportunities: ["AI Research Labs", "Tech Giants", "Healthcare Tech", "Autonomous Systems"],
+                resources: ["Fast.ai", "Hugging Face", "Kaggle Learn"],
+                related: ["Software Developer", "Data Analyst"],
+                roadmap: ["Python & Linear Algebra", "Machine Learning Algorithms", "Deep Learning & Neural Networks", "Real-world AI Projects", "AI/ML Engineer"]
+            },
+            {
+                id: 5,
+                name: "Electronics Engineer",
+                category: "Engineering",
+                matchScore: 82,
+                description: "Design, develop, and test electronic equipment, circuits, communication systems, and microchips.",
+                education: "B.Tech / B.E. in Electronics & Communication Engineering",
+                subjects: ["Physics", "Mathematics", "Electronics"],
+                skills: ["Problem Solving", "Mathematics", "Analytical Thinking"],
+                courses: ["VLSI Design Basics", "Embedded Systems with Arduino", "Circuit Analysis"],
+                exams: ["JEE Main & Advanced", "GATE ECE"],
+                opportunities: ["Semiconductor Companies", "Consumer Electronics", "Telecom", "Defense"],
+                resources: ["NPTEL", "Arduino Docs", "Instructables"],
+                related: ["Embedded Systems Engineer", "Mechanical Engineer"],
+                roadmap: ["Physics & Circuit Theory", "Microcontrollers & Embedded C", "PCB Design Practice", "Hardware Internship", "Electronics Engineer"]
+            },
+            {
+                id: 6,
+                name: "Embedded Systems Engineer",
+                category: "Engineering",
+                matchScore: 84,
+                description: "Develop hardware and software integration for specialized embedded computer systems in cars, medical devices, and IoT.",
+                education: "B.Tech in ECE / Electrical / Computer Engineering",
+                subjects: ["Physics", "Digital Electronics", "Computer Science"],
+                skills: ["Programming", "Problem Solving", "Analytical Thinking"],
+                courses: ["Embedded C Programming", "RTOS Fundamentals", "IoT Development"],
+                exams: ["JEE", "GATE"],
+                opportunities: ["Automotive Industry", "IoT Startups", "Medical Device Makers"],
+                resources: ["Embedded Gurukul", "Coursera IoT"],
+                related: ["Electronics Engineer", "Software Developer"],
+                roadmap: ["C Programming & Microcontrollers", "Sensors & Actuators", "Communication Protocols (SPI/I2C)", "IoT Project Building", "Embedded Engineer"]
+            },
+            {
+                id: 7,
+                name: "Mechanical Engineer",
+                category: "Engineering",
+                matchScore: 78,
+                description: "Research, design, manufacture, and test mechanical devices, tools, engines, and thermal systems.",
+                education: "B.Tech / B.E. in Mechanical Engineering",
+                subjects: ["Physics", "Mathematics", "Mechanics"],
+                skills: ["Problem Solving", "Creativity", "Analytical Thinking"],
+                courses: ["AutoCAD & SolidWorks", "Thermodynamics", "Robotics Basics"],
+                exams: ["JEE Main", "GATE Mechanical"],
+                opportunities: ["Automotive", "Manufacturing", "Aerospace", "Energy Sector"],
+                resources: ["NPTEL", "Autodesk Learning", "Engineering Toolbox"],
+                related: ["Civil Engineer", "Electronics Engineer"],
+                roadmap: ["Engineering Physics & Math", "CAD Software Training", "Workshop & Internship", "Core Industrial Project", "Mechanical Engineer"]
+            },
+            {
+                id: 8,
+                name: "Civil Engineer",
+                category: "Engineering",
+                matchScore: 75,
+                description: "Plan, design, and supervise the construction and maintenance of building structures, roads, bridges, and dams.",
+                education: "B.Tech / B.E. in Civil Engineering",
+                subjects: ["Physics", "Mathematics", "Structural Mechanics"],
+                skills: ["Problem Solving", "Teamwork", "Leadership"],
+                courses: ["Staad Pro & Revit", "Construction Management", "Surveying Fundamentals"],
+                exams: ["JEE Main", "GATE Civil", "State PSCs"],
+                opportunities: ["Government Public Works", "Construction Firms", "Real Estate", "Infrastructure"],
+                resources: ["NPTEL Civil", "Civil Today"],
+                related: ["Mechanical Engineer", "Environmental Scientist"],
+                roadmap: ["Math & Mechanics Foundation", "Structural Design & Drafting", "Site Surveying Training", "Junior Site Engineer", "Project Manager"]
+            },
+            {
+                id: 9,
+                name: "Doctor (MBBS)",
+                category: "Healthcare",
+                matchScore: 88,
+                description: "Diagnose and treat illnesses, prescribe medications, and provide compassionate healthcare to patients.",
+                education: "MBBS Degree (Bachelor of Medicine, Bachelor of Surgery)",
+                subjects: ["Biology", "Chemistry", "Physics"],
+                skills: ["Communication", "Problem Solving", "Teamwork"],
+                courses: ["Human Anatomy & Physiology", "Clinical Pharmacology", "Medical Diagnostics"],
+                exams: ["NEET-UG", "NEET-PG"],
+                opportunities: ["Hospitals", "Clinics", "Public Health Services", "Research"],
+                resources: ["KenHub", "Osmosis", "PubMed"],
+                related: ["Nurse", "Pharmacist"],
+                roadmap: ["Class 11/12 PCB (Physics, Chemistry, Biology)", "Clear NEET-UG Exam", "5.5 Years MBBS Course & Internship", "Post Graduation (MD/MS)", "Practicing Doctor"]
+            },
+            {
+                id: 10,
+                name: "Nurse",
+                category: "Healthcare",
+                matchScore: 85,
+                description: "Provide vital patient care, administer treatments, and support doctors in healthcare settings.",
+                education: "B.Sc Nursing or General Nursing and Midwifery (GNM)",
+                subjects: ["Biology", "Nursing Science", "Psychology"],
+                skills: ["Communication", "Teamwork", "Problem Solving"],
+                courses: ["Patient Care Fundamentals", "First Aid & Emergency Response", "Community Health"],
+                exams: ["State Nursing Entrance", "AIIMS Nursing"],
+                opportunities: ["Hospitals", "Community Health Centers", "Home Care", "International Healthcare"],
+                resources: ["Nursing Times", "WHO Health Guidelines"],
+                related: ["Doctor", "Pharmacist"],
+                roadmap: ["Science Stream in School", "Nursing Entrance Exam", "B.Sc Nursing Degree", "Clinical Internship", "Registered Nurse"]
+            },
+            {
+                id: 11,
+                name: "Pharmacist",
+                category: "Healthcare",
+                matchScore: 80,
+                description: "Dispense medications, advise patients on safe drug usage, and work in pharmaceutical research.",
+                education: "B.Pharm or D.Pharm Degree",
+                subjects: ["Chemistry", "Biology", "Pharmacology"],
+                skills: ["Analytical Thinking", "Communication", "Problem Solving"],
+                courses: ["Pharmaceutical Chemistry", "Pharmacognosy", "Drug Regulatory Affairs"],
+                exams: ["GPAT", "State Pharmacy Admissions"],
+                opportunities: ["Retail Pharmacies", "Pharmaceutical R&D", "Hospitals", "Drug Control Administration"],
+                resources: ["Pharmacy Times", "NCBI Bookshelf"],
+                related: ["Doctor", "Nurse"],
+                roadmap: ["PCB/PCM in 12th", "B.Pharm Degree", "Pharmacy Internship", "Licensed Pharmacist or R&D Scientist"]
+            },
+            {
+                id: 12,
+                name: "Teacher / Educator",
+                category: "Arts & Education",
+                matchScore: 83,
+                description: "Inspire and educate students in schools, colleges, or specialized training institutions.",
+                education: "B.Ed (Bachelor of Education) after Graduation",
+                subjects: ["Pedagogy", "Subject Specialization", "Psychology"],
+                skills: ["Communication", "Leadership", "Teamwork"],
+                courses: ["Modern Teaching Methodologies", "Child Psychology", "Digital Classroom Tools"],
+                exams: ["CTET", "State TET", "NET"],
+                opportunities: ["Schools", "Colleges", "EdTech Platforms", "Coaching Centers"],
+                resources: ["NCERT Resources", "Coursera Teaching Courses"],
+                related: ["Digital Marketer"],
+                roadmap: ["Graduation in Chosen Subject", "B.Ed Degree", "Clear Teacher Eligibility Test (TET)", "School / College Teacher"]
+            },
+            {
+                id: 13,
+                name: "Chartered Accountant (CA)",
+                category: "Finance",
+                matchScore: 87,
+                description: "Manage financial accounts, taxation, auditing, and corporate financial advisory.",
+                education: "ICAI Qualification (Foundation, Intermediate, Final + Articleship)",
+                subjects: ["Accounting", "Economics", "Law", "Taxation"],
+                skills: ["Analytical Thinking", "Mathematics", "Problem Solving"],
+                courses: ["Financial Accounting", "Corporate Tax Planning", "Auditing Standards"],
+                exams: ["CA Foundation", "CA Intermediate", "CA Final"],
+                opportunities: ["Big 4 Accounting Firms", "Corporate Finance", "Independent Practice", "Banking"],
+                resources: ["ICAI Digital Learning Hub", "Taxmann"],
+                related: ["Data Analyst", "Entrepreneur"],
+                roadmap: ["Class 12 Commerce/Any Stream", "CA Foundation Exam", "CA Intermediate & Articleship Training", "CA Final Exam", "Chartered Accountant"]
+            },
+            {
+                id: 14,
+                name: "Lawyer / Legal Advisor",
+                category: "Government & Legal",
+                matchScore: 81,
+                description: "Advise clients on legal rights, draft legal documents, and represent clients in courts of law.",
+                education: "LL.B (3-year after graduation or 5-year Integrated B.A. LL.B)",
+                subjects: ["Political Science", "History", "Logic", "Law"],
+                skills: ["Communication", "Analytical Thinking", "Problem Solving"],
+                courses: ["Constitutional Law", "Criminal & Civil Law", "Legal Drafting"],
+                exams: ["CLAT", "AILET", "State Judiciary Exams"],
+                opportunities: ["Law Firms", "Corporate Legal Departments", "Supreme/High Courts", "Civil Services"],
+                resources: ["SCC Online", "Bar and Bench", "Legal Bites"],
+                related: ["Teacher", "Government Services"],
+                roadmap: ["Complete 12th Standard", "Clear CLAT Exam", "5-Year Integrated Law Degree (B.A. LL.B)", "Bar Council Enrollment & Practice", "Advocate / Legal Advisor"]
+            },
+            {
+                id: 15,
+                name: "Digital Marketer",
+                category: "Business & Media",
+                matchScore: 85,
+                description: "Promote brands, products, and services using online channels like social media, SEO, and email campaigns.",
+                education: "Any Graduation with Digital Marketing Certifications",
+                subjects: ["Marketing", "Communications", "Psychology"],
+                skills: ["Creativity", "Communication", "Analytical Thinking"],
+                courses: ["Google Digital Garage", "Meta Social Media Marketing", "SEO Masterclass"],
+                exams: ["University Degree / Certification Exams"],
+                opportunities: ["Digital Agencies", "E-commerce Companies", "Startup Growth Teams", "Freelance"],
+                resources: ["HubSpot Academy", "Backlinko SEO", "Neil Patel Blog"],
+                related: ["UI/UX Designer", "Graphic Designer", "Journalist"],
+                roadmap: ["Learn Digital Basics (SEO, Social Media)", "Earn Google/Meta Certifications", "Run Personal Blog or Campaign", "Digital Marketing Specialist"]
+            },
+            {
+                id: 16,
+                name: "UI/UX Designer",
+                category: "Design",
+                matchScore: 90,
+                description: "Design intuitive, accessible, and delightful user interfaces and user experiences for apps and websites.",
+                education: "B.Des / Graduation with UX Design Bootcamp & Portfolio",
+                subjects: ["Art", "Psychology", "Computer Science"],
+                skills: ["Creativity", "Problem Solving", "Communication"],
+                courses: ["Google UX Design Certificate", "Figma Masterclass", "Design Thinking Fundamentals"],
+                exams: ["CEED", "NID Entrance", "Design Portfolio Review"],
+                opportunities: ["Product Companies", "Design Studios", "Tech Startups", "Freelance"],
+                resources: ["Figma Community", "Nielsen Norman Group", "Behance"],
+                related: ["Graphic Designer", "Software Developer"],
+                roadmap: ["Learn Design Principles & Psychology", "Master Figma & Prototyping", "Build 3 Case Studies", "Design Portfolio", "UI/UX Designer"]
+            },
+            {
+                id: 17,
+                name: "Graphic Designer",
+                category: "Design",
+                matchScore: 83,
+                description: "Create visual concepts, branding materials, illustrations, and marketing graphics for print and digital.",
+                education: "Diploma or Degree in Fine Arts / Graphic Design",
+                subjects: ["Visual Arts", "Design Theory", "Media"],
+                skills: ["Creativity", "Communication"],
+                courses: ["Adobe Photoshop & Illustrator Mastery", "Brand Identity Design"],
+                exams: ["NIFT", "NID", "State Arts Entrance"],
+                opportunities: ["Advertising Agencies", "Media Houses", "Publishing", "Freelance"],
+                resources: ["Dribbble", "Adobe Creative Cloud Tutorials", "Pinterest"],
+                related: ["UI/UX Designer", "Journalist"],
+                roadmap: ["Learn Design Basics & Color Theory", "Master Adobe Photoshop/Illustrator", "Build Creative Portfolio", "Junior Graphic Designer"]
+            },
+            {
+                id: 18,
+                name: "Journalist / Content Creator",
+                category: "Arts & Media",
+                matchScore: 82,
+                description: "Investigate news stories, write articles, produce digital media, and inform the public.",
+                education: "B.A. in Journalism & Mass Communication (BAJMC)",
+                subjects: ["English", "Political Science", "History", "Media Studies"],
+                skills: ["Communication", "Creativity", "Analytical Thinking"],
+                courses: ["Digital Journalism", "Video Editing & Podcasting", "Media Ethics"],
+                exams: ["IIMC Entrance", "University Media Exams"],
+                opportunities: ["News Channels", "Digital Media Outlets", "Publishing Houses", "Independent Creator"],
+                resources: ["Reuters Institute", "Poynter", "Medium"],
+                related: ["Digital Marketer", "Teacher"],
+                roadmap: ["Develop Strong Writing & Communication", "BAJMC Degree", "Internship with News/Media", "Journalist / Content Producer"]
+            },
+            {
+                id: 19,
+                name: "Environmental Scientist",
+                category: "Environment",
+                matchScore: 86,
+                description: "Protect the environment and human health by analyzing pollution, waste management, and conservation.",
+                education: "B.Sc / M.Sc in Environmental Science or Earth Sciences",
+                subjects: ["Biology", "Chemistry", "Geography"],
+                skills: ["Analytical Thinking", "Problem Solving", "Mathematics"],
+                courses: ["Environmental Impact Assessment", "Climate Change Science", "GIS Mapping"],
+                exams: ["GATE", "CSIR NET Environmental Science"],
+                opportunities: ["NGOs", "Government Pollution Control Boards", "Renewable Energy Firms"],
+                resources: ["UN Environment Programme", "EPA Resources"],
+                related: ["Civil Engineer", "Doctor"],
+                roadmap: ["Science Stream in School", "B.Sc Environmental Science", "GIS & Data Collection Skills", "Environmental Analyst"]
+            },
+            {
+                id: 20,
+                name: "Entrepreneur / Startup Founder",
+                category: "Business & Media",
+                matchScore: 88,
+                description: "Identify market gaps, build innovative products or services, and lead a business venture.",
+                education: "Any Graduation / BBA / MBA (Not strictly bound by degree)",
+                subjects: ["Economics", "Business Studies", "Mathematics"],
+                skills: ["Leadership", "Problem Solving", "Communication", "Teamwork"],
+                courses: ["Startup School by Y Combinator", "Entrepreneurship 101", "Financial Literacy for Founders"],
+                exams: ["CAT (for MBA)", "Incubator Selection Tests"],
+                opportunities: ["Self-Employed", "Startup Incubators", "Venture Capital Backed Ventures"],
+                resources: ["Y Combinator Library", "Indie Hackers", "Shark Tank Case Studies"],
+                related: ["Chartered Accountant", "Digital Marketer"],
+                roadmap: ["Identify Problem & Validate Idea", "Build Minimum Viable Product (MVP)", "Secure Mentorship & Early Users", "Scale Business Venture"]
+            }
+        ];
+
+        const DEMO_SCHOLARSHIPS = [
+            {
+                id: 1,
+                name: "National Merit Rural Scholarship",
+                level: "Higher Secondary & College",
+                state: "All India (National)",
+                category: "Economically Weaker Section (EWS) / Rural",
+                income: "Below ₹2.5 Lakhs / annum",
+                benefit: "₹25,000 per year + Free Laptop Subsidy",
+                deadline: "November 30, 2026",
+                link: "#apply-national-scholarship"
+            },
+            {
+                id: 2,
+                name: "Digital Empowerment Girls Scholarship",
+                level: "College Undergraduate",
+                state: "All India (National)",
+                category: "Female Students in STEM",
+                income: "Below ₹5 Lakhs / annum",
+                benefit: "₹40,000 tuition fee waiver per year",
+                deadline: "December 15, 2026",
+                link: "#apply-girls-stem"
+            },
+            {
+                id: 3,
+                name: "State Rural Talent Scholarship",
+                level: "Class 10 & 12 Passouts",
+                state: "State-Specific (Rural Focus)",
+                category: "Government School Students",
+                income: "Below ₹2 Lakhs / annum",
+                benefit: "₹15,000 one-time higher education grant",
+                deadline: "October 31, 2026",
+                link: "#apply-state-talent"
+            },
+            {
+                id: 4,
+                name: "Tech-Future Engineering Fellowship",
+                level: "Engineering Undergraduates",
+                state: "All India",
+                category: "Merit-cum-Means",
+                income: "Below ₹3.5 Lakhs / annum",
+                benefit: "₹50,000 annual scholarship + Mentorship",
+                deadline: "January 10, 2027",
+                link: "#apply-tech-future"
+            }
+        ];
+
+        const DEMO_COURSES = [
+            { id: 1, name: "Full Stack Web Development Bootcamp", degree: "Certification", duration: "6 Months", skills: ["Programming", "Problem Solving"], careers: ["Software Developer"] },
+            { id: 2, name: "Google Data Analytics Professional Certificate", degree: "Certification", duration: "4 Months", skills: ["Analytical Thinking", "Mathematics"], careers: ["Data Analyst"] },
+            { id: 3, name: "B.Tech Computer Science & Engineering", degree: "B.Tech", duration: "4 Years", skills: ["Programming", "Mathematics", "Problem Solving"], careers: ["Software Developer", "AI/ML Engineer"] },
+            { id: 4, name: "Bachelor of Computer Applications (BCA)", degree: "BCA", duration: "3 Years", skills: ["Programming", "Teamwork"], careers: ["Software Developer"] },
+            { id: 5, name: "UI/UX Design Specialization", degree: "Diploma", duration: "3 Months", skills: ["Creativity", "Communication"], careers: ["UI/UX Designer"] }
+        ];
+
+        const DEMO_COLLEGES = [
+            { id: 1, name: "National Institute of Technology (NIT)", location: "Multiple States", type: "Government Autonomous", courses: ["B.Tech", "M.Tech"] },
+            { id: 2, name: "State Government Engineering College", location: "Regional Rural Hubs", type: "State Government", courses: ["B.Tech Civil", "Mechanical", "ECE", "CSE"] },
+            { id: 3, name: "Government Arts & Science Degree College", location: "District Headquarters", type: "Government", courses: ["B.Sc Computer Science", "B.Com", "B.A."] },
+            { id: 4, name: "Indira Gandhi National Open University (IGNOU)", location: "Distance / Rural Study Centres", type: "Central Open University", courses: ["BCA", "BA", "B.Sc", "Diplomas"] }
+        ];
+
+        const DEMO_SKILLS = [
+            { id: 1, name: "Programming (Python / JS)", importance: "Critical", current: "Beginner", target: "Advanced", progress: 35, resources: ["freeCodeCamp", "Python.org Tutorial"] },
+            { id: 2, name: "Problem Solving & Logic", importance: "Critical", current: "Intermediate", target: "Advanced", progress: 60, resources: ["HackerRank", "LeetCode Easy"] },
+            { id: 3, name: "Communication & English", importance: "High", current: "Beginner", target: "Fluent", progress: 40, resources: ["BBC Learning English", "Duolingo"] },
+            { id: 4, name: "Mathematics & Analytical Thinking", importance: "High", current: "Intermediate", target: "Advanced", progress: 70, resources: ["Khan Academy", "NPTEL Math"] },
+            { id: 5, name: "Data Analysis & SQL", importance: "Medium", current: "Beginner", target: "Intermediate", progress: 20, resources: ["SQLZoo", "Kaggle SQL Course"] }
+        ];
+
+        const ASSESSMENT_QUESTIONS = [
+            { id: 1, category: "Interests", question: "What type of activities do you enjoy doing the most in your free time or school projects?", options: [
+                { label: "Building things, coding, or fixing electronic gadgets", value: "tech" },
+                { label: "Helping people, talking about health, or volunteering in community care", value: "health" },
+                { label: "Drawing, creating visual layouts, or writing stories and articles", value: "design" },
+                { label: "Managing teams, organizing school events, or exploring business ideas", value: "business" },
+                { label: "Working with numbers, solving math puzzles, or analyzing data charts", value: "math" }
+            ]},
+            { id: 2, category: "Subjects", question: "Which school subjects do you find most interesting and score best in?", options: [
+                { label: "Mathematics & Physics", value: "math_physics" },
+                { label: "Biology & Chemistry / Science", value: "biology" },
+                { label: "Computer Science / Information Technology", value: "cs" },
+                { label: "Economics, Commerce, or Social Studies", value: "commerce" },
+                { label: "Languages, Literature, Arts & Media", value: "arts" }
+            ]},
+            { id: 3, category: "Skills", question: "Which of these strengths best describes your natural ability?", options: [
+                { label: "Logical reasoning and quick problem solving", value: "problem_solving" },
+                { label: "Clear verbal and written communication with others", value: "communication" },
+                { label: "Creative imagination and visual designing", value: "creativity" },
+                { label: "Leadership, teamwork, and organizing groups", value: "leadership" },
+                { label: "Methodical attention to detail and data accuracy", value: "analytical" }
+            ]},
+            { id: 4, category: "Work Preferences", question: "What kind of work environment do you envision for your future career?", options: [
+                { label: "Working with modern computers and software applications", value: "software" },
+                { label: "Working in hospitals, labs, or helping communities directly", value: "field_health" },
+                { label: "Designing physical structures, machines, or infrastructure", value: "engineering" },
+                { label: "Managing financial records, audits, or legal advisory", value: "finance_legal" },
+                { label: "Teaching, coaching, or creative content creation", value: "education_media" }
+            ]},
+            { id: 5, category: "Career Goals", question: "What is your primary motivation when thinking about your future career?", options: [
+                { label: "Solving complex technical challenges and inventing new technology", value: "innovate" },
+                { label: "Serving society, improving health, and helping underserved communities", value: "serve" },
+                { label: "Achieving financial stability and entrepreneurial growth", value: "financial" },
+                { label: "Expressing creativity, art, and storytelling", value: "creative" },
+                { label: "Securing stable government or corporate professional standing", value: "stable" }
+            ]}
+        ];
+
+        /* ========================================================================
+           MAIN APP COMPONENT
+           ======================================================================== */
+        function App() {
+            // Navigation State
+            const [currentTab, setCurrentTab] = useState('home');
+            
+            // Authentication State
+            const [isAuthenticated, setIsAuthenticated] = useState(false);
+            const [user, setUser] = useState({
+                name: "Ananya Sharma",
+                email: "ananya.rural@careerbridge.ai",
+                educationLevel: "Higher Secondary (Class 12)",
+                classYear: "Class 12 Science",
+                language: "English",
+                location: "Rural District, India",
+                profileCompleted: true
+            });
+
+            // Interactive Modules State
+            const [assessmentCompleted, setAssessmentCompleted] = useState(false);
+            const [assessmentAnswers, setAssessmentAnswers] = useState({});
+            const [selectedCareer, setSelectedCareer] = useState(null);
+            const [roadmapSteps, setRoadmapSteps] = useState([
+                { id: 1, title: "Class 10/12 Foundation (Math & Science)", completed: true },
+                { id: 2, title: "Choose Target Degree (B.Tech / BCA / B.Sc)", completed: true },
+                { id: 3, title: "Learn Programming Fundamentals (Python/JS)", completed: false },
+                { id: 4, title: "Build 3+ Hands-on Practical Projects", completed: false },
+                { id: 5, title: "Apply for Internships & Scholarships", completed: false },
+                { id: 6, title: "Secure Entry-Level Job or Higher Studies", completed: false }
+            ]);
+            const [skillsState, setSkillsState] = useState(DEMO_SKILLS);
+            const [chatMessages, setChatMessages] = useState([
+                { sender: 'ai', text: "Hello! I am your CareerBridge Assistant. How can I help you plan your education, career path, or scholarship opportunities today?" }
+            ]);
+            const [chatInput, setChatInput] = useState('');
+            const [isAiTyping, setIsAiTyping] = useState(false);
+            const [searchQuery, setSearchQuery] = useState('');
+            const [filterCategory, setFilterCategory] = useState('All');
+            const [language, setLanguage] = useState('English');
+            const [showDocsModal, setShowDocsModal] = useState(false);
+            const [toastMessage, setToastMessage] = useState(null);
+
+            // Toast helper
+            const showToast = (msg) => {
+                setToastMessage(msg);
+                setTimeout(() => setToastMessage(null), 3500);
+            };
+
+            // Scroll to top on tab switch
+            useEffect(() => {
+                window.scrollTo(0, 0);
+            }, [currentTab]);
+
+            return (
+                <div className="min-h-full flex flex-col bg-slate-50 text-slate-900">
+                    {/* Toast Notification */}
+                    {toastMessage && (
+                        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-xl flex items-center space-x-3 fade-in border border-slate-700">
+                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span className="text-sm font-medium">{toastMessage}</span>
+                        </div>
+                    )}
+
+                    {/* Navbar */}
+                    <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-xs">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                            {/* Brand Logo */}
+                            <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setCurrentTab('home')}>
+                                <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-md shadow-indigo-200">
+                                    CB
+                                </div>
+                                <div>
+                                    <div className="flex items-center space-x-2">
+                                        <span className="font-bold text-lg text-slate-900 tracking-tight">CareerBridge AI</span>
+                                        <span className="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full font-semibold border border-indigo-100 hidden sm:inline">Rural EdTech</span>
+                                    </div>
+                                    <p className="text-xs text-slate-500 hidden sm:block">Bridging Students to the Right Career</p>
+                                </div>
+                            </div>
+
+                            {/* Desktop Navigation Links */}
+                            <nav className="hidden lg:flex items-center space-x-1">
+                                {[
+                                    { id: 'home', label: 'Home' },
+                                    { id: 'careers', label: 'Careers' },
+                                    { id: 'assessment', label: 'Assessment' },
+                                    { id: 'scholarships', label: 'Scholarships' },
+                                    { id: 'courses', label: 'Courses & Colleges' },
+                                    { id: 'skills', label: 'Skills' },
+                                    { id: 'ai-assistant', label: 'AI Assistant' },
+                                    ...(isAuthenticated ? [{ id: 'dashboard', label: 'Dashboard' }] : [])
+                                ].map((tab) => (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => setCurrentTab(tab.id)}
+                                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                            currentTab === tab.id
+                                                ? 'bg-indigo-50 text-indigo-700 font-semibold'
+                                                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                                        }`}
+                                    >
+                                        {tab.label}
+                                    </button>
+                                ))}
+                            </nav>
+
+                            {/* Right Actions: Language, Docs & Auth */}
+                            <div className="flex items-center space-x-3">
+                                <select 
+                                    value={language} 
+                                    onChange={(e) => { setLanguage(e.target.value); showToast(`Language switched to ${e.target.value}`); }}
+                                    aria-label="Select Language"
+                                    className="text-xs bg-slate-100 border border-slate-200 rounded-lg px-2 py-1.5 font-medium text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                                >
+                                    <option value="English">English</option>
+                                    <option value="Tamil">தமிழ் (Tamil Prep)</option>
+                                    <option value="Hindi">हिन्दी (Hindi Prep)</option>
+                                </select>
+
+                                <button
+                                    onClick={() => setShowDocsModal(true)}
+                                    className="text-xs bg-purple-50 text-purple-700 border border-purple-200 px-3 py-1.5 rounded-lg font-medium hover:bg-purple-100 transition-colors hidden sm:block"
+                                >
+                                    System Docs
+                                </button>
+
+                                {isAuthenticated ? (
+                                    <div className="flex items-center space-x-3">
+                                        <button 
+                                            onClick={() => setCurrentTab('dashboard')}
+                                            className="flex items-center space-x-2 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+                                        >
+                                            <div className="w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-bold">
+                                                {user.name.charAt(0)}
+                                            </div>
+                                            <span className="hidden md:inline">{user.name.split(' ')[0]}</span>
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setIsAuthenticated(false);
+                                                setCurrentTab('home');
+                                                showToast("Logged out securely.");
+                                            }}
+                                            className="text-xs text-rose-600 hover:text-rose-700 font-medium px-2 py-1"
+                                        >
+                                            Logout
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center space-x-2">
+                                        <button
+                                            onClick={() => setCurrentTab('login')}
+                                            className="text-xs font-medium text-slate-700 hover:text-indigo-600 px-3 py-2"
+                                        >
+                                            Login
+                                        </button>
+                                        <button
+                                            onClick={() => setCurrentTab('register')}
+                                            className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition-all"
+                                        >
+                                            Get Started
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Mobile Navigation bar */}
+                        <div className="lg:hidden flex overflow-x-auto px-4 py-2 bg-white border-t border-slate-100 space-x-2">
+                            {[
+                                { id: 'home', label: 'Home' },
+                                { id: 'careers', label: 'Careers' },
+                                { id: 'assessment', label: 'Assessment' },
+                                { id: 'scholarships', label: 'Scholarships' },
+                                { id: 'courses', label: 'Courses' },
+                                { id: 'skills', label: 'Skills' },
+                                { id: 'ai-assistant', label: 'AI Assistant' },
+                                ...(isAuthenticated ? [{ id: 'dashboard', label: 'Dashboard' }] : [])
+                            ].map((tab) => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setCurrentTab(tab.id)}
+                                    className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-medium ${
+                                        currentTab === tab.id ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600'
+                                    }`}
+                                >
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </div>
+                    </header>
+
+                    {/* Main Content Area */}
+                    <main className="flex-1 flex flex-col">
+                        {currentTab === 'home' && <LandingPage setCurrentTab={setCurrentTab} />}
+                        {currentTab === 'careers' && <CareersPage careers={DEMO_CAREERS} onSelectCareer={(c) => { setSelectedCareer(c); setCurrentTab('career-detail'); }} searchQuery={searchQuery} setSearchQuery={setSearchQuery} filterCategory={filterCategory} setFilterCategory={setFilterCategory} />}
+                        {currentTab === 'career-detail' && <CareerDetailPage career={selectedCareer} onBack={() => setCurrentTab('careers')} onGoRoadmap={() => setCurrentTab('roadmap')} />}
+                        {currentTab === 'assessment' && <AssessmentPage assessmentAnswers={assessmentAnswers} setAssessmentAnswers={setAssessmentAnswers} onComplete={() => { setAssessmentCompleted(true); setCurrentTab('dashboard'); showToast("Assessment completed! Career matches updated."); }} />}
+                        {currentTab === 'scholarships' && <ScholarshipsPage scholarships={DEMO_SCHOLARSHIPS} />}
+                        {currentTab === 'courses' && <CoursesCollegesPage courses={DEMO_COURSES} colleges={DEMO_COLLEGES} />}
+                        {currentTab === 'skills' && <SkillsPage skills={skillsState} setSkillsState={setSkillsState} showToast={showToast} />}
+                        {currentTab === 'ai-assistant' && <AiAssistantPage chatMessages={chatMessages} setChatMessages={setChatMessages} chatInput={chatInput} setChatInput={setChatInput} isAiTyping={isAiTyping} setIsAiTyping={setIsAiTyping} />}
+                        {currentTab === 'dashboard' && <DashboardPage user={user} assessmentCompleted={assessmentCompleted} roadmapSteps={roadmapSteps} careers={DEMO_CAREERS} setCurrentTab={setCurrentTab} />}
+                        {currentTab === 'roadmap' && <RoadmapPage roadmapSteps={roadmapSteps} setRoadmapSteps={setRoadmapSteps} showToast={showToast} />}
+                        {currentTab === 'login' && <LoginPage setIsAuthenticated={setIsAuthenticated} setUser={setUser} setCurrentTab={setCurrentTab} showToast={showToast} />}
+                        {currentTab === 'register' && <RegisterPage setIsAuthenticated={setIsAuthenticated} setUser={setUser} setCurrentTab={setCurrentTab} showToast={showToast} />}
+                    </main>
+
+                    {/* Footer */}
+                    <footer className="bg-slate-900 text-slate-300 border-t border-slate-800 py-12 px-4 sm:px-6 lg:px-8">
+                        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
+                            <div>
+                                <div className="flex items-center space-x-2 mb-4">
+                                    <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center text-white font-bold">CB</div>
+                                    <span className="font-bold text-white text-lg">CareerBridge AI</span>
+                                </div>
+                                <p className="text-sm text-slate-400 mb-4 leading-relaxed">
+                                    AI-powered career guidance ecosystem bridging students in rural and underserved regions to world-class career pathways, education, and scholarships.
+                                </p>
+                                <p className="text-xs text-slate-500">© 2026 CareerBridge AI. Built for India & Global Rural Students.</p>
+                            </div>
+                            <div>
+                                <h4 className="font-semibold text-white text-sm mb-3 uppercase tracking-wider">Platform Modules</h4>
+                                <ul className="space-y-2 text-sm">
+                                    <li><button onClick={() => setCurrentTab('assessment')} className="hover:text-white transition-colors">Career Assessment</button></li>
+                                    <li><button onClick={() => setCurrentTab('careers')} className="hover:text-white transition-colors">Career Database (20+)</button></li>
+                                    <li><button onClick={() => setCurrentTab('scholarships')} className="hover:text-white transition-colors">Scholarship Discovery</button></li>
+                                    <li><button onClick={() => setCurrentTab('courses')} className="hover:text-white transition-colors">Courses & Colleges</button></li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 className="font-semibold text-white text-sm mb-3 uppercase tracking-wider">Support & Info</h4>
+                                <ul className="space-y-2 text-sm">
+                                    <li><button onClick={() => setShowDocsModal(true)} className="hover:text-white transition-colors">System Documentation</button></li>
+                                    <li><a href="#privacy" onClick={(e) => {e.preventDefault(); showToast("Privacy Policy: All student data is stored securely and encrypted.");}} className="hover:text-white transition-colors">Privacy Policy</a></li>
+                                    <li><a href="#terms" onClick={(e) => {e.preventDefault(); showToast("Terms: Guidance platform for educational purposes.");}} className="hover:text-white transition-colors">Terms of Service</a></li>
+                                    <li><button onClick={() => setCurrentTab('ai-assistant')} className="hover:text-white transition-colors">AI Assistant</button></li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 className="font-semibold text-white text-sm mb-3 uppercase tracking-wider">Rural Accessibility</h4>
+                                <p className="text-xs text-slate-400 mb-3 leading-relaxed">
+                                    Optimized for low-bandwidth connections, mobile devices, and multi-lingual regional student readiness.
+                                </p>
+                                <div className="flex space-x-3">
+                                    <span className="text-xs bg-slate-800 text-slate-300 px-2.5 py-1 rounded-md border border-slate-700">Mobile First</span>
+                                    <span className="text-xs bg-slate-800 text-slate-300 px-2.5 py-1 rounded-md border border-slate-700">Low Data Mode</span>
+                                </div>
+                            </div>
+                        </div>
+                    </footer>
+
+                    {/* System Documentation Modal */}
+                    {showDocsModal && (
+                        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+                            <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200 p-6 fade-in">
+                                <div className="flex justify-between items-center pb-4 border-b border-slate-200">
+                                    <h3 className="text-lg font-bold text-slate-900 flex items-center space-x-2">
+                                        <span>📖 CareerBridge AI — System & Architecture Documentation</span>
+                                    </h3>
+                                    <button onClick={() => setShowDocsModal(false)} className="text-slate-400 hover:text-slate-600 text-lg font-bold px-2">✕</button>
+                                </div>
+                                <div className="py-4 space-y-4 text-sm text-slate-700 leading-relaxed">
+                                    <div>
+                                        <h4 className="font-semibold text-slate-900">1. Project Overview</h4>
+                                        <p>CareerBridge AI is a full-stack EdTech ecosystem designed for rural and underserved students to discover suitable careers, education roadmaps, scholarships, and skill development using modular AI guidance.</p>
+                                    </div>
+                                    <div>
+                                        <h4 className="font-semibold text-slate-900">2. Technology Stack & Architecture</h4>
+                                        <p><strong>Frontend:</strong> React.js, Tailwind CSS, Responsive Mobile-First Design.<br/>
+                                        <strong>Backend:</strong> Python FastAPI REST APIs with secure password hashing (bcrypt) and JWT authentication.<br/>
+                                        <strong>Database:</strong> PostgreSQL with structured models (Users, StudentProfiles, Careers, Scholarships, Roadmaps, Skills, ChatHistory).<br/>
+                                        <strong>AI Service:</strong> Modular AI layer supporting OpenAI or Google Gemini via environment variables (`OPENAI_API_KEY` / `GEMINI_API_KEY`).</p>
+                                    </div>
+                                    <div>
+                                        <h4 className="font-semibold text-slate-900">3. Setup & Run Instructions</h4>
+                                        <pre className="bg-slate-100 p-3 rounded-lg text-xs font-mono text-slate-800 overflow-x-auto">
+# Backend setup
+cd backend
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+
+# Frontend setup
+cd frontend
+npm install
+npm run dev
+                                        </pre>
+                                    </div>
+                                    <div>
+                                        <h4 className="font-semibold text-slate-900">4. Demo Credentials</h4>
+                                        <p>Email: <code className="bg-slate-100 px-1.5 py-0.5 rounded text-indigo-600 font-mono">ananya.rural@careerbridge.ai</code> | Password: <code className="bg-slate-100 px-1.5 py-0.5 rounded text-indigo-600 font-mono">student123</code></p>
+                                    </div>
+                                    <div>
+                                        <h4 className="font-semibold text-slate-900">5. Future Flutter Integration</h4>
+                                        <p>The FastAPI backend exposes clean REST endpoints (`/api/v1/careers`, `/api/v1/assessment`, `/api/v1/ai/chat`) designed to seamlessly power a future Flutter cross-platform mobile application.</p>
+                                    </div>
+                                </div>
+                                <div className="pt-4 border-t border-slate-200 flex justify-end">
+                                    <button onClick={() => setShowDocsModal(false)} className="bg-indigo-600 text-white px-5 py-2 rounded-xl text-sm font-semibold hover:bg-indigo-700">
+                                        Close Documentation
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        /* ========================================================================
+           LANDING PAGE COMPONENT
+           ======================================================================== */
+        function LandingPage({ setCurrentTab }) {
+            return (
+                <div className="flex-1 flex flex-col">
+                    {/* Hero Section */}
+                    <section className="bg-gradient-to-b from-indigo-50/60 via-white to-white py-16 lg:py-24 px-4 sm:px-6 lg:px-8 border-b border-slate-100">
+                        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                            <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
+                                <div className="inline-flex items-center space-x-2 bg-indigo-50 border border-indigo-100 px-3.5 py-1.5 rounded-full text-xs font-semibold text-indigo-700">
+                                    <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
+                                    <span>Empowering Rural & Underserved Students</span>
+                                </div>
+                                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                                    Your Future. Your Career. <span className="text-indigo-600">Your Path.</span>
+                                </h1>
+                                <p className="text-lg text-slate-600 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+                                    AI-powered career guidance that helps you discover the right career, skills, courses, scholarships, and opportunities tailored to your strengths.
+                                </p>
+                                <div className="flex flex-col sm:flex-row justify-center lg:justify-start space-y-3 sm:space-y-0 sm:space-x-4 pt-2">
+                                    <button
+                                        onClick={() => setCurrentTab('assessment')}
+                                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-7 py-3.5 rounded-xl shadow-lg shadow-indigo-200 transition-all text-base flex items-center justify-center space-x-2"
+                                    >
+                                        <span>Start Career Assessment</span>
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                    </button>
+                                    <button
+                                        onClick={() => setCurrentTab('careers')}
+                                        className="bg-white hover:bg-slate-50 text-slate-700 font-semibold px-7 py-3.5 rounded-xl border border-slate-200 shadow-xs transition-all text-base flex items-center justify-center"
+                                    >
+                                        Explore Careers
+                                    </button>
+                                </div>
+                                <div className="pt-4 flex items-center justify-center lg:justify-start space-x-6 text-xs text-slate-500 font-medium">
+                                    <div className="flex items-center space-x-1.5">
+                                        <span className="text-emerald-500 font-bold">✓</span> <span>20+ Career Profiles</span>
+                                    </div>
+                                    <div className="flex items-center space-x-1.5">
+                                        <span className="text-emerald-500 font-bold">✓</span> <span>Scholarship Discovery</span>
+                                    </div>
+                                    <div className="flex items-center space-x-1.5">
+                                        <span className="text-emerald-500 font-bold">✓</span> <span>AI Assistant Support</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="lg:col-span-5">
+                                <div className="bg-gradient-to-br from-indigo-600 to-purple-700 p-8 rounded-3xl text-white shadow-2xl relative overflow-hidden">
+                                    <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-white/10 rounded-full blur-2xl"></div>
+                                    <div className="relative z-10 space-y-4">
+                                        <span className="text-xs bg-white/25 px-3 py-1 rounded-full font-medium">Ecosystem Overview</span>
+                                        <h3 className="text-2xl font-bold">Student + AI + Opportunity</h3>
+                                        <p className="text-indigo-100 text-sm leading-relaxed">
+                                            Designed specifically to bridge the information gap for rural students with accessible guidance, step-by-step roadmaps, and verified financial scholarships.
+                                        </p>
+                                        <div className="pt-4 grid grid-cols-2 gap-3">
+                                            <div className="bg-white/10 p-3.5 rounded-xl border border-white/10">
+                                                <div className="text-2xl font-extrabold">94%</div>
+                                                <div className="text-xs text-indigo-200">Match Accuracy</div>
+                                            </div>
+                                            <div className="bg-white/10 p-3.5 rounded-xl border border-white/10">
+                                                <div className="text-2xl font-extrabold">20+</div>
+                                                <div className="text-xs text-indigo-200">Career Tracks</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Features Section */}
+                    <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+                        <div className="text-center max-w-3xl mx-auto mb-16">
+                            <h2 className="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-2">Comprehensive Features</h2>
+                            <h3 className="text-3xl font-extrabold text-slate-900">Everything You Need to Plan Your Future</h3>
+                            <p className="text-slate-600 mt-3">Built to take students from confusion to clarity with actionable steps.</p>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            {[
+                                { title: "AI Career Guidance", desc: "Advanced profile analysis matching your interests, skills, and subjects to optimal careers.", icon: "🤖", tab: "assessment" },
+                                { title: "Personalized Roadmaps", desc: "Step-by-step visual career progression from Class 10/12 to job placement or higher studies.", icon: "🗺️", tab: "roadmap" },
+                                { title: "Scholarship Discovery", desc: "Filter national and state government scholarships based on education level and income.", icon: "🎓", tab: "scholarships" },
+                                { title: "College & Course Explorer", desc: "Search and discover verified degree programs, diplomas, and colleges near you.", icon: "🏛️", tab: "courses" },
+                                { title: "Skill Development", desc: "Track essential tech and communication skills with curated beginner learning resources.", icon: "⚡", tab: "skills" },
+                                { title: "AI Career Assistant", desc: "Ask questions anytime and get intelligent, context-aware answers about your career options.", icon: "💬", tab: "ai-assistant" }
+                            ].map((card, idx) => (
+                                <div key={idx} onClick={() => setCurrentTab(card.tab)} className="bg-white p-6 rounded-2xl border border-slate-200 hover:border-indigo-300 hover:shadow-xl transition-all cursor-pointer group">
+                                    <div className="text-3xl mb-4 w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center group-hover:scale-110 transition-transform">{card.icon}</div>
+                                    <h4 className="font-bold text-slate-900 text-lg mb-2 group-hover:text-indigo-600 transition-colors">{card.title}</h4>
+                                    <p className="text-sm text-slate-600 leading-relaxed">{card.desc}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* How It Works */}
+                    <section className="bg-slate-100 py-20 px-4 sm:px-6 lg:px-8 border-y border-slate-200">
+                        <div className="max-w-7xl mx-auto">
+                            <div className="text-center max-w-3xl mx-auto mb-16">
+                                <h2 className="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-2">Simple 3-Step Process</h2>
+                                <h3 className="text-3xl font-extrabold text-slate-900">How CareerBridge AI Works</h3>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                {[
+                                    { step: "01", title: "Tell Us About Yourself", desc: "Enter your education level, subjects, favorite interests, and skills in a simple interface." },
+                                    { step: "02", title: "Discover Your Career Matches", desc: "Our AI recommendation engine calculates match percentages and explains why careers suit you." },
+                                    { step: "03", title: "Follow Your Roadmap", desc: "Track progress step-by-step through degrees, skill milestones, and scholarship applications." }
+                                ].map((item, idx) => (
+                                    <div key={idx} className="bg-white p-8 rounded-2xl border border-slate-200 shadow-xs relative">
+                                        <div className="text-4xl font-extrabold text-indigo-600 mb-4">{item.step}</div>
+                                        <h4 className="text-lg font-bold text-slate-900 mb-2">{item.title}</h4>
+                                        <p className="text-sm text-slate-600 leading-relaxed">{item.desc}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            );
+        }
+
+        /* ========================================================================
+           CAREERS LISTING PAGE
+           ======================================================================== */
+        function CareersPage({ careers, onSelectCareer, searchQuery, setSearchQuery, filterCategory, setFilterCategory }) {
+            const categories = ['All', 'Technology', 'Engineering', 'Healthcare', 'Business & Media', 'Design', 'Environment', 'Government & Legal'];
+
+            const filteredCareers = useMemo(() => {
+                return careers.filter(c => {
+                    const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) || c.description.toLowerCase().includes(searchQuery.toLowerCase());
+                    const matchesCategory = filterCategory === 'All' || c.category === filterCategory;
+                    return matchesSearch && matchesCategory;
+                });
+            }, [careers, searchQuery, filterCategory]);
+
+            return (
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full">
+                    <div className="mb-8">
+                        <h1 className="text-3xl font-extrabold text-slate-900">Explore Career Database</h1>
+                        <p className="text-slate-600 mt-1">Discover 20+ comprehensive career paths with required education, skills, and roadmaps.</p>
+                    </div>
+
+                    {/* Search & Filter Bar */}
+                    <div className="flex flex-col md:flex-row gap-4 mb-8">
+                        <div className="flex-1 relative">
+                            <input
+                                type="text"
+                                placeholder="Search careers by name or keywords (e.g. Software, Doctor, Design)..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 pl-10 text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500 shadow-xs"
+                            />
+                            <svg className="w-5 h-5 text-slate-400 absolute left-3 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        </div>
+                        <div className="flex overflow-x-auto pb-2 md:pb-0 gap-2">
+                            {categories.map(cat => (
+                                <button
+                                    key={cat}
+                                    onClick={() => setFilterCategory(cat)}
+                                    className={`px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                                        filterCategory === cat
+                                            ? 'bg-indigo-600 text-white shadow-md'
+                                            : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                                    }`}
+                                >
+                                    {cat}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Careers Grid */}
+                    {filteredCareers.length === 0 ? (
+                        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
+                            <p className="text-slate-500 text-sm">No careers found matching your search.</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {filteredCareers.map(career => (
+                                <div
+                                    key={career.id}
+                                    onClick={() => onSelectCareer(career)}
+                                    className="bg-white rounded-2xl border border-slate-200 p-6 hover:shadow-xl hover:border-indigo-300 transition-all cursor-pointer flex flex-col justify-between group"
+                                >
+                                    <div>
+                                        <div className="flex justify-between items-start mb-3">
+                                            <span className="text-xs bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full font-semibold">{career.category}</span>
+                                            <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">{career.matchScore}% Match</span>
+                                        </div>
+                                        <h3 className="text-xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors mb-2">{career.name}</h3>
+                                        <p className="text-sm text-slate-600 line-clamp-2 leading-relaxed mb-4">{career.description}</p>
+                                    </div>
+                                    <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                                        <span className="text-xs text-slate-500 font-medium truncate max-w-[200px]">{career.education.split(' / ')[0]}</span>
+                                        <span className="text-xs font-semibold text-indigo-600 group-hover:translate-x-1 transition-transform">View Details →</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        /* ========================================================================
+           CAREER DETAIL PAGE
+           ======================================================================== */
+        function CareerDetailPage({ career, onBack, onGoRoadmap }) {
+            if (!career) {
+                return (
+                    <div className="max-w-7xl mx-auto px-4 py-20 text-center">
+                        <p className="text-slate-600 mb-4">No career selected.</p>
+                        <button onClick={onBack} className="bg-indigo-600 text-white px-5 py-2 rounded-xl text-sm font-semibold">Back to Careers</button>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full">
+                    <button onClick={onBack} className="text-sm text-indigo-600 font-semibold mb-6 flex items-center space-x-1 hover:underline">
+                        <span>← Back to Careers</span>
+                    </button>
+
+                    <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm space-y-8">
+                        {/* Header */}
+                        <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-200 pb-6 gap-4">
+                            <div>
+                                <div className="flex items-center space-x-3 mb-2">
+                                    <span className="text-xs bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full font-semibold">{career.category}</span>
+                                    <span className="text-xs bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full font-semibold">{career.matchScore}% Profile Match</span>
+                                </div>
+                                <h1 className="text-3xl font-extrabold text-slate-900">{career.name}</h1>
+                            </div>
+                            <button
+                                onClick={onGoRoadmap}
+                                className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-xl shadow-md transition-all text-sm whitespace-nowrap"
+                            >
+                                Add to My Roadmap
+                            </button>
+                        </div>
+
+                        {/* Description */}
+                        <div>
+                            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Career Overview</h3>
+                            <p className="text-slate-700 leading-relaxed text-base">{career.description}</p>
+                            <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 p-3 rounded-xl mt-3">
+                                ℹ️ <em>Guidance Suggestion:</em> This recommendation is based on your profile interests and skills. It is a guidance suggestion, not a final career decision.
+                            </p>
+                        </div>
+
+                        {/* Grid Info */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                                <h4 className="font-bold text-slate-900 mb-3 flex items-center space-x-2"><span>🎓 Education Required</span></h4>
+                                <p className="text-sm text-slate-700">{career.education}</p>
+                            </div>
+                            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                                <h4 className="font-bold text-slate-900 mb-3 flex items-center space-x-2"><span>📚 Important Subjects</span></h4>
+                                <div className="flex flex-wrap gap-2">
+                                    {career.subjects.map((sub, i) => (
+                                        <span key={i} className="bg-white border border-slate-200 text-slate-700 text-xs px-3 py-1 rounded-lg font-medium">{sub}</span>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                                <h4 className="font-bold text-slate-900 mb-3 flex items-center space-x-2"><span>⚡ Required Skills</span></h4>
+                                <div className="flex flex-wrap gap-2">
+                                    {career.skills.map((skill, i) => (
+                                        <span key={i} className="bg-indigo-50 text-indigo-700 text-xs px-3 py-1 rounded-lg font-semibold">{skill}</span>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                                <h4 className="font-bold text-slate-900 mb-3 flex items-center space-x-2"><span>🏛️ Entrance Exams & Opportunities</span></h4>
+                                <p className="text-sm text-slate-700 mb-2"><strong>Exams:</strong> {career.exams.join(', ')}</p>
+                                <p className="text-sm text-slate-700"><strong>Opportunities:</strong> {career.opportunities.join(', ')}</p>
+                            </div>
+                        </div>
+
+                        {/* Roadmap Preview */}
+                        <div>
+                            <h3 className="font-bold text-slate-900 text-lg mb-4">Recommended Step-by-Step Pathway</h3>
+                            <div className="space-y-3">
+                                {career.roadmap.map((step, idx) => (
+                                    <div key={idx} className="flex items-center space-x-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                        <div className="w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-bold">{idx + 1}</div>
+                                        <span className="text-sm font-semibold text-slate-800">{step}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        /* ========================================================================
+           ASSESSMENT PAGE (Interactive 5-Step Quiz)
+           ======================================================================== */
+        function AssessmentPage({ assessmentAnswers, setAssessmentAnswers, onComplete }) {
+            const [currentQIndex, setCurrentQIndex] = useState(0);
+            const question = ASSESSMENT_QUESTIONS[currentQIndex];
+
+            const handleSelectOption = (val) => {
+                setAssessmentAnswers({
+                    ...assessmentAnswers,
+                    [question.id]: val
+                });
+            };
+
+            const progressPct = ((currentQIndex + 1) / ASSESSMENT_QUESTIONS.length) * 100;
+
+            return (
+                <div className="max-w-3xl mx-auto px-4 py-12 flex-1 w-full flex flex-col justify-center">
+                    <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-lg">
+                        {/* Header & Progress */}
+                        <div className="mb-8">
+                            <div className="flex justify-between items-center mb-3">
+                                <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider">Question {currentQIndex + 1} of {ASSESSMENT_QUESTIONS.length}</span>
+                                <span className="text-xs text-slate-500 font-semibold">{Math.round(progressPct)}% Completed</span>
+                            </div>
+                            <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                                <div className="bg-indigo-600 h-full transition-all duration-300" style={{ width: `${progressPct}%` }}></div>
+                            </div>
+                        </div>
+
+                        {/* Question */}
+                        <div className="mb-8">
+                            <span className="text-xs bg-purple-50 text-purple-700 px-3 py-1 rounded-full font-semibold mb-3 inline-block">{question.category}</span>
+                            <h2 className="text-2xl font-extrabold text-slate-900 mt-2">{question.question}</h2>
+                        </div>
+
+                        {/* Options */}
+                        <div className="space-y-3 mb-8">
+                            {question.options.map((opt, idx) => {
+                                const isSelected = assessmentAnswers[question.id] === opt.value;
+                                return (
+                                    <div
+                                        key={idx}
+                                        onClick={() => handleSelectOption(opt.value)}
+                                        className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex items-center justify-between ${
+                                            isSelected
+                                                ? 'border-indigo-600 bg-indigo-50/50 text-indigo-900 font-semibold shadow-xs'
+                                                : 'border-slate-200 hover:border-slate-300 bg-white text-slate-700'
+                                        }`}
+                                    >
+                                        <span className="text-sm">{opt.label}</span>
+                                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${isSelected ? 'border-indigo-600 bg-indigo-600 text-white' : 'border-slate-300'}`}>
+                                            {isSelected && <span className="text-xs">✓</span>}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Navigation Buttons */}
+                        <div className="flex justify-between items-center pt-6 border-t border-slate-100">
+                            <button
+                                disabled={currentQIndex === 0}
+                                onClick={() => setCurrentQIndex(currentQIndex - 1)}
+                                className={`px-5 py-2.5 rounded-xl text-sm font-semibold border ${currentQIndex === 0 ? 'opacity-40 cursor-not-allowed border-slate-200 text-slate-400' : 'border-slate-300 text-slate-700 hover:bg-slate-50'}`}
+                            >
+                                Previous
+                            </button>
+                            {currentQIndex < ASSESSMENT_QUESTIONS.length - 1 ? (
+                                <button
+                                    onClick={() => setCurrentQIndex(currentQIndex + 1)}
+                                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold shadow-md"
+                                >
+                                    Next Question →
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={onComplete}
+                                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-7 py-2.5 rounded-xl text-sm font-semibold shadow-md"
+                                >
+                                    Submit Assessment & View Results 🎉
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        /* ========================================================================
+           SCHOLARSHIPS PAGE
+           ======================================================================== */
+        function ScholarshipsPage({ scholarships }) {
+            const [search, setSearch] = useState('');
+            const [levelFilter, setLevelFilter] = useState('All');
+
+            const filtered = scholarships.filter(s => {
+                const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase()) || s.category.toLowerCase().includes(search.toLowerCase());
+                const matchesLevel = levelFilter === 'All' || s.level.includes(levelFilter);
+                return matchesSearch && matchesLevel;
+            });
+
+            return (
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full">
+                    <div className="mb-8">
+                        <h1 className="text-3xl font-extrabold text-slate-900">Scholarship Discovery</h1>
+                        <p className="text-slate-600 mt-1">Discover verified government and national scholarships designed for rural and underserved students.</p>
+                        <p className="text-xs bg-amber-50 text-amber-800 border border-amber-200 p-2.5 rounded-xl mt-3 inline-block">
+                            📌 <em>Note:</em> Demo data clearly labeled. Always verify final application deadlines on official government portals.
+                        </p>
+                    </div>
+
+                    <div className="flex flex-col md:flex-row gap-4 mb-8">
+                        <input
+                            type="text"
+                            placeholder="Search scholarships by name or category..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="flex-1 bg-white border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500 shadow-xs"
+                        />
+                        <select
+                            value={levelFilter}
+                            onChange={(e) => setLevelFilter(e.target.value)}
+                            className="bg-white border border-slate-300 rounded-xl px-4 py-3 text-sm font-medium text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                        >
+                            <option value="All">All Education Levels</option>
+                            <option value="Higher Secondary">Higher Secondary</option>
+                            <option value="College">College Undergraduate</option>
+                            <option value="Engineering">Engineering</option>
+                        </select>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {filtered.map(sch => (
+                            <div key={sch.id} className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs hover:border-indigo-300 transition-all flex flex-col justify-between">
+                                <div>
+                                    <div className="flex justify-between items-start mb-3">
+                                        <span className="text-xs bg-purple-50 text-purple-700 px-3 py-1 rounded-full font-semibold">{sch.level}</span>
+                                        <span className="text-xs font-bold text-rose-600 bg-rose-50 px-2.5 py-1 rounded-full">Deadline: {sch.deadline}</span>
+                                    </div>
+                                    <h3 className="text-xl font-bold text-slate-900 mb-2">{sch.name}</h3>
+                                    <p className="text-sm text-slate-600 mb-3"><strong>Category:</strong> {sch.category}</p>
+                                    <p className="text-sm text-slate-600 mb-3"><strong>Income Eligibility:</strong> {sch.income}</p>
+                                    <div className="bg-emerald-50 border border-emerald-100 p-3 rounded-xl mb-4">
+                                        <p className="text-xs font-bold text-emerald-800">Benefits: {sch.benefit}</p>
+                                    </div>
+                                </div>
+                                <a
+                                    href="#apply"
+                                    onClick={(e) => { e.preventDefault(); alert(`Redirecting to official scholarship portal for ${sch.name}`); }}
+                                    className="bg-indigo-600 hover:bg-indigo-700 text-white text-center py-2.5 rounded-xl text-sm font-semibold transition-colors block shadow-xs"
+                                >
+                                    Apply / View Official Portal →
+                                </a>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        /* ========================================================================
+           COURSES & COLLEGES PAGE
+           ======================================================================== */
+        function CoursesCollegesPage({ courses, colleges }) {
+            const [tab, setTab] = useState('courses');
+            const [search, setSearch] = useState('');
+
+            return (
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+                        <div>
+                            <h1 className="text-3xl font-extrabold text-slate-900">Courses & Colleges Explorer</h1>
+                            <p className="text-slate-600 mt-1">Search recognized degree programs, diplomas, and colleges across India.</p>
+                        </div>
+                        <div className="flex bg-slate-200 p-1 rounded-xl">
+                            <button
+                                onClick={() => setTab('courses')}
+                                className={`px-5 py-2 rounded-lg text-xs font-semibold transition-all ${tab === 'courses' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600'}`}
+                            >
+                                Courses ({courses.length})
+                            </button>
+                            <button
+                                onClick={() => setTab('colleges')}
+                                className={`px-5 py-2 rounded-lg text-xs font-semibold transition-all ${tab === 'colleges' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600'}`}
+                            >
+                                Colleges ({colleges.length})
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="mb-8">
+                        <input
+                            type="text"
+                            placeholder={`Search ${tab === 'courses' ? 'courses by name or skill...' : 'colleges by name or location...'}`}
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500 shadow-xs"
+                        />
+                    </div>
+
+                    {tab === 'courses' ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {courses.filter(c => c.name.toLowerCase().includes(search.toLowerCase())).map(course => (
+                                <div key={course.id} className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
+                                    <span className="text-xs bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full font-semibold">{course.degree}</span>
+                                    <h3 className="text-lg font-bold text-slate-900 mt-3 mb-2">{course.name}</h3>
+                                    <p className="text-sm text-slate-600 mb-4"><strong>Duration:</strong> {course.duration}</p>
+                                    <div className="flex flex-wrap gap-1.5 mb-4">
+                                        {course.skills.map((s, i) => (
+                                            <span key={i} className="text-xs bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-md">{s}</span>
+                                        ))}
+                                    </div>
+                                    <div className="text-xs text-indigo-600 font-semibold">Careers: {course.careers.join(', ')}</div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {colleges.filter(c => c.name.toLowerCase().includes(search.toLowerCase()) || c.location.toLowerCase().includes(search.toLowerCase())).map(college => (
+                                <div key={college.id} className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
+                                    <span className="text-xs bg-purple-50 text-purple-700 px-3 py-1 rounded-full font-semibold">{college.type}</span>
+                                    <h3 className="text-xl font-bold text-slate-900 mt-3 mb-2">{college.name}</h3>
+                                    <p className="text-sm text-slate-600 mb-3">📍 <strong>Location:</strong> {college.location}</p>
+                                    <div className="text-xs font-semibold text-slate-700">Offered Programs: {college.courses.join(', ')}</div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        /* ========================================================================
+           SKILL DEVELOPMENT PAGE
+           ======================================================================== */
+        function SkillsPage({ skills, setSkillsState, showToast }) {
+            const handleProgressUpdate = (id, newProg) => {
+                const updated = skills.map(s => s.id === id ? { ...s, progress: newProg } : s);
+                setSkillsState(updated);
+                showToast("Skill progress updated successfully!");
+            };
+
+            return (
+                <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full">
+                    <div className="mb-8">
+                        <h1 className="text-3xl font-extrabold text-slate-900">Skill Development Module</h1>
+                        <p className="text-slate-600 mt-1">Track and build essential career skills recommended for rural students.</p>
+                    </div>
+
+                    <div className="space-y-6">
+                        {skills.map(skill => (
+                            <div key={skill.id} className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                                <div className="space-y-2 flex-1">
+                                    <div className="flex items-center space-x-3">
+                                        <h3 className="text-lg font-bold text-slate-900">{skill.name}</h3>
+                                        <span className="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded-md font-semibold">{skill.importance}</span>
+                                    </div>
+                                    <p className="text-xs text-slate-500">Current Level: <span className="font-semibold text-slate-700">{skill.current}</span> → Target: <span className="font-semibold text-indigo-600">{skill.target}</span></p>
+                                    <div className="flex flex-wrap gap-2 pt-1">
+                                        {skill.resources.map((res, i) => (
+                                            <span key={i} className="text-xs bg-slate-100 text-slate-700 px-2 py-1 rounded-lg">📖 {res}</span>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="w-full md:w-64 space-y-2">
+                                    <div className="flex justify-between text-xs font-bold text-slate-700">
+                                        <span>Progress</span>
+                                        <span>{skill.progress}%</span>
+                                    </div>
+                                    <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                                        <div className="bg-indigo-600 h-full transition-all" style={{ width: `${skill.progress}%` }}></div>
+                                    </div>
+                                    <div className="flex space-x-2 pt-2">
+                                        <button
+                                            onClick={() => handleProgressUpdate(skill.id, Math.min(100, skill.progress + 25))}
+                                            className="flex-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs py-1.5 rounded-lg font-semibold transition-colors"
+                                        >
+                                            + Progress
+                                        </button>
+                                        <button
+                                            onClick={() => handleProgressUpdate(skill.id, 100)}
+                                            className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs py-1.5 rounded-lg font-semibold transition-colors"
+                                        >
+                                            Complete ✓
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        /* ========================================================================
+           AI CAREER ASSISTANT CHATBOT
+           ======================================================================== */
+        function AiAssistantPage({ chatMessages, setChatMessages, chatInput, setChatInput, isAiTyping, setIsAiTyping }) {
+            const chatEndRef = useRef(null);
+
+            useEffect(() => {
+                chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            }, [chatMessages, isAiTyping]);
+
+            const handleSend = (e) => {
+                e.preventDefault();
+                if (!chatInput.trim()) return;
+
+                const userMsg = chatInput;
+                const newMsgs = [...chatMessages, { sender: 'user', text: userMsg }];
+                setChatMessages(newMsgs);
+                setChatInput('');
+                setIsAiTyping(true);
+
+                // Simulate intelligent AI response
+                setTimeout(() => {
+                    let aiReply = "Based on your student profile in rural education, I recommend focusing on foundational subjects like Mathematics and Computer Science, and exploring government scholarships such as the National Merit Scholarship.";
+                    const lower = userMsg.toLowerCase();
+                    if (lower.includes('software') || lower.includes('coding')) {
+                        aiReply = "Software Development is an excellent high-demand career! Start with freeCodeCamp or Python basics, build 3 practical projects, and target B.Tech or BCA degrees.";
+                    } else if (lower.includes('12th science') || lower.includes('after 12th')) {
+                        aiReply = "After 12th Science, you have versatile pathways including B.Tech (Engineering), MBBS (Doctor), BCA/B.Sc Computer Science, or B.Sc Nursing. Take our Career Assessment to find your exact match!";
+                    } else if (lower.includes('scholarship')) {
+                        aiReply = "We have several verified scholarships listed in our Scholarship module, such as the National Merit Rural Scholarship (up to ₹25,000/year) and Digital Empowerment Girls Scholarship.";
+                    }
+
+                    setChatMessages([...newMsgs, { sender: 'ai', text: aiReply }]);
+                    setIsAiTyping(false);
+                }, 1000);
+            };
+
+            return (
+                <div className="max-w-4xl mx-auto px-4 py-8 flex-1 w-full flex flex-col h-[calc(100vh-140px)]">
+                    <div className="mb-4">
+                        <h1 className="text-2xl font-extrabold text-slate-900">CareerBridge AI Assistant</h1>
+                        <p className="text-xs text-slate-600">Ask any career, education, or scholarship question. Powered by modular AI service.</p>
+                    </div>
+
+                    <div className="bg-white rounded-3xl border border-slate-200 shadow-sm flex-1 flex flex-col overflow-hidden">
+                        {/* Chat Messages */}
+                        <div className="flex-1 p-6 overflow-y-auto space-y-4">
+                            {chatMessages.map((msg, idx) => (
+                                <div key={idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                    <div className={`max-w-[80%] p-4 rounded-2xl text-sm leading-relaxed ${
+                                        msg.sender === 'user'
+                                            ? 'bg-indigo-600 text-white rounded-br-xs'
+                                            : 'bg-slate-100 text-slate-800 rounded-bl-xs border border-slate-200'
+                                    }`}>
+                                        {msg.text}
+                                    </div>
+                                </div>
+                            ))}
+                            {isAiTyping && (
+                                <div className="flex justify-start">
+                                    <div className="bg-slate-100 text-slate-500 p-4 rounded-2xl text-xs flex items-center space-x-2">
+                                        <span className="w-2 h-2 rounded-full bg-indigo-600 animate-bounce"></span>
+                                        <span className="w-2 h-2 rounded-full bg-indigo-600 animate-bounce delay-100"></span>
+                                        <span className="w-2 h-2 rounded-full bg-indigo-600 animate-bounce delay-200"></span>
+                                        <span>CareerBridge AI is thinking...</span>
+                                    </div>
+                                </div>
+                            )}
+                            <div ref={chatEndRef} />
+                        </div>
+
+                        {/* Suggested Prompts */}
+                        <div className="px-6 py-2 bg-slate-50 border-t border-slate-200 flex gap-2 overflow-x-auto text-xs">
+                            {[
+                                "What career is suitable for me?",
+                                "What can I do after 12th science?",
+                                "Which skills should I learn for software development?",
+                                "What scholarships are available?"
+                            ].map((prompt, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => setChatInput(prompt)}
+                                    className="whitespace-nowrap bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-slate-700 hover:bg-slate-100 font-medium"
+                                >
+                                    {prompt}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Input Box */}
+                        <form onSubmit={handleSend} className="p-4 bg-white border-t border-slate-200 flex gap-3">
+                            <input
+                                type="text"
+                                placeholder="Ask your career question here..."
+                                value={chatInput}
+                                onChange={(e) => setChatInput(e.target.value)}
+                                className="flex-1 bg-slate-100 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                            />
+                            <button
+                                type="submit"
+                                className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-xl shadow-md text-sm transition-colors"
+                            >
+                                Send
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            );
+        }
+
+        /* ========================================================================
+           DASHBOARD PAGE
+           ======================================================================== */
+        function DashboardPage({ user, assessmentCompleted, roadmapSteps, careers, setCurrentTab }) {
+            const completedRoadmapCount = roadmapSteps.filter(s => s.completed).length;
+            const roadmapPct = Math.round((completedRoadmapCount / roadmapSteps.length) * 100);
+            const topMatchCareer = careers[0];
+
+            return (
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full space-y-8">
+                    {/* Welcome Header */}
+                    <div className="bg-gradient-to-r from-indigo-600 to-purple-700 rounded-3xl p-8 text-white shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                        <div>
+                            <span className="text-xs bg-white/20 px-3 py-1 rounded-full font-medium">Student Dashboard</span>
+                            <h1 className="text-3xl font-extrabold mt-2">Welcome back, {user.name}! 👋</h1>
+                            <p className="text-indigo-100 text-sm mt-1">{user.educationLevel} • {user.location}</p>
+                        </div>
+                        <button
+                            onClick={() => setCurrentTab('assessment')}
+                            className="bg-white text-indigo-700 hover:bg-indigo-50 font-semibold px-6 py-3 rounded-xl shadow-md text-sm transition-all"
+                        >
+                            {assessmentCompleted ? "Retake Assessment" : "Take Career Assessment"}
+                        </button>
+                    </div>
+
+                    {/* Summary Cards Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Top Career Match</div>
+                            <div className="text-xl font-bold text-indigo-600 mb-1">{topMatchCareer.name}</div>
+                            <div className="text-xs text-slate-500 font-semibold">{topMatchCareer.matchScore}% Match Score</div>
+                        </div>
+                        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Assessment Status</div>
+                            <div className="text-xl font-bold text-emerald-600 mb-1">{assessmentCompleted ? "Completed" : "Pending"}</div>
+                            <div className="text-xs text-slate-500 font-semibold">15-20 Questions Profiled</div>
+                        </div>
+                        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Roadmap Progress</div>
+                            <div className="text-xl font-bold text-slate-900 mb-1">{roadmapPct}%</div>
+                            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden mt-2">
+                                <div className="bg-indigo-600 h-full" style={{ width: `${roadmapPct}%` }}></div>
+                            </div>
+                        </div>
+                        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Scholarships Available</div>
+                            <div className="text-xl font-bold text-purple-600 mb-1">4 Matching</div>
+                            <div className="text-xs text-slate-500 font-semibold">Rural & State Grants</div>
+                        </div>
+                    </div>
+
+                    {/* Quick Actions & Recommended Next Step */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-8 shadow-xs space-y-6">
+                            <h3 className="text-xl font-bold text-slate-900">Your Recommended Next Step</h3>
+                            <div className="bg-indigo-50 border border-indigo-100 p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                <div>
+                                    <span className="text-xs font-bold text-indigo-700 bg-white px-2.5 py-1 rounded-md">Priority Action</span>
+                                    <h4 className="font-bold text-indigo-900 text-lg mt-2">Explore Your Personalized Career Roadmap</h4>
+                                    <p className="text-xs text-indigo-700 mt-1">Check off completed steps from Class 12 foundation to internship readiness.</p>
+                                </div>
+                                <button
+                                    onClick={() => setCurrentTab('roadmap')}
+                                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-sm whitespace-nowrap"
+                                >
+                                    View Roadmap →
+                                </button>
+                            </div>
+
+                            <h4 className="font-bold text-slate-900 pt-2">Quick Navigation Actions</h4>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                {[
+                                    { label: 'Explore Careers', tab: 'careers', icon: '🔍' },
+                                    { label: 'Find Scholarships', tab: 'scholarships', icon: '🎓' },
+                                    { label: 'Skill Development', tab: 'skills', icon: '⚡' },
+                                    { label: 'Courses & Colleges', tab: 'courses', icon: '🏛️' },
+                                    { label: 'Ask AI Assistant', tab: 'ai-assistant', icon: '💬' },
+                                    { label: 'Take Assessment', tab: 'assessment', icon: '📝' }
+                                ].map((action, i) => (
+                                    <button
+                                        key={i}
+                                        onClick={() => setCurrentTab(action.tab)}
+                                        className="p-4 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-slate-50 text-left transition-all group"
+                                    >
+                                        <div className="text-xl mb-2">{action.icon}</div>
+                                        <div className="text-sm font-bold text-slate-800 group-hover:text-indigo-600">{action.label}</div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Profile Info Sidebar */}
+                        <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-xs space-y-6">
+                            <h3 className="text-xl font-bold text-slate-900">Student Profile</h3>
+                            <div className="space-y-3 text-sm text-slate-600">
+                                <div><strong>Full Name:</strong> {user.name}</div>
+                                <div><strong>Email:</strong> {user.email}</div>
+                                <div><strong>Education Level:</strong> {user.educationLevel}</div>
+                                <div><strong>Class / Year:</strong> {user.classYear}</div>
+                                <div><strong>Preferred Language:</strong> {user.language}</div>
+                                <div><strong>Location:</strong> {user.location}</div>
+                            </div>
+                            <div className="pt-4 border-t border-slate-100">
+                                <span className="text-xs bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg font-semibold block text-center">✓ Profile Securely Saved</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        /* ========================================================================
+           ROADMAP PAGE
+           ======================================================================== */
+        function RoadmapPage({ roadmapSteps, setRoadmapSteps, showToast }) {
+            const toggleStep = (id) => {
+                const updated = roadmapSteps.map(s => s.id === id ? { ...s, completed: !s.completed } : s);
+                setRoadmapSteps(updated);
+                showToast("Roadmap progress updated!");
+            };
+
+            const completedCount = roadmapSteps.filter(s => s.completed).length;
+            const pct = Math.round((completedCount / roadmapSteps.length) * 100);
+
+            return (
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full space-y-8">
+                    <div>
+                        <h1 className="text-3xl font-extrabold text-slate-900">Personalized Career Roadmap</h1>
+                        <p className="text-slate-600 mt-1">Step-by-step interactive guidance from foundational studies to career success.</p>
+                    </div>
+
+                    <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs flex justify-between items-center">
+                        <div>
+                            <div className="text-sm font-bold text-slate-700">Overall Roadmap Progress</div>
+                            <div className="text-2xl font-extrabold text-indigo-600 mt-0.5">{pct}% Completed ({completedCount} of {roadmapSteps.length} steps)</div>
+                        </div>
+                        <div className="w-32 bg-slate-100 h-3 rounded-full overflow-hidden">
+                            <div className="bg-indigo-600 h-full transition-all" style={{ width: `${pct}%` }}></div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        {roadmapSteps.map((step, idx) => (
+                            <div
+                                key={step.id}
+                                onClick={() => toggleStep(step.id)}
+                                className={`p-6 rounded-2xl border-2 cursor-pointer transition-all flex items-center justify-between ${
+                                    step.completed
+                                        ? 'bg-emerald-50/40 border-emerald-300 text-slate-800'
+                                        : 'bg-white border-slate-200 hover:border-indigo-300 text-slate-800'
+                                }`}
+                            >
+                                <div className="flex items-center space-x-4">
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${step.completed ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-700'}`}>
+                                        {idx + 1}
+                                    </div>
+                                    <div>
+                                        <h4 className={`font-bold text-base ${step.completed ? 'line-through text-slate-500' : 'text-slate-900'}`}>{step.title}</h4>
+                                        <p className="text-xs text-slate-500">{step.completed ? 'Completed Milestone' : 'Click to mark as complete'}</p>
+                                    </div>
+                                </div>
+                                <div className={`w-6 h-6 rounded-full border flex items-center justify-center ${step.completed ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-slate-300'}`}>
+                                    {step.completed && <span className="text-xs font-bold">✓</span>}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        /* ========================================================================
+           LOGIN PAGE
+           ======================================================================== */
+        function LoginPage({ setIsAuthenticated, setUser, setCurrentTab, showToast }) {
+            const [email, setEmail] = useState('ananya.rural@careerbridge.ai');
+            const [password, setPassword] = useState('student123');
+
+            const handleLogin = (e) => {
+                e.preventDefault();
+                setIsAuthenticated(true);
+                setUser({
+                    name: "Ananya Sharma",
+                    email: email,
+                    educationLevel: "Higher Secondary (Class 12)",
+                    classYear: "Class 12 Science",
+                    language: "English",
+                    location: "Rural District, India",
+                    profileCompleted: true
+                });
+                showToast("Logged in successfully!");
+                setCurrentTab('dashboard');
+            };
+
+            return (
+                <div className="max-w-md mx-auto px-4 py-16 flex-1 w-full flex flex-col justify-center">
+                    <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-xl">
+                        <div className="text-center mb-8">
+                            <h2 className="text-2xl font-extrabold text-slate-900">Welcome Back</h2>
+                            <p className="text-sm text-slate-600 mt-1">Log in to your CareerBridge AI account</p>
+                        </div>
+
+                        <form onSubmit={handleLogin} className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Email Address</label>
+                                <input
+                                    type="email"
+                                    required
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Password</label>
+                                <input
+                                    type="password"
+                                    required
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                                />
+                            </div>
+                            <button
+                                type="submit"
+                                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl shadow-md text-sm transition-colors"
+                            >
+                                Secure Login
+                            </button>
+                        </form>
+
+                        <div className="mt-6 text-center text-xs text-slate-500">
+                            Demo Credentials: <code className="text-indigo-600 font-mono">ananya.rural@careerbridge.ai</code> / <code className="text-indigo-600 font-mono">student123</code>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        /* ========================================================================
+           REGISTER PAGE
+           ======================================================================== */
+        function RegisterPage({ setIsAuthenticated, setUser, setCurrentTab, showToast }) {
+            const [name, setName] = useState('');
+            const [email, setEmail] = useState('');
+            const [password, setPassword] = useState('');
+            const [educationLevel, setEducationLevel] = useState('Higher Secondary (Class 12)');
+            const [classYear, setClassYear] = useState('Class 12 Science');
+            const [language, setLanguage] = useState('English');
+
+            const handleRegister = (e) => {
+                e.preventDefault();
+                setIsAuthenticated(true);
+                setUser({
+                    name: name || "New Student",
+                    email: email || "student@careerbridge.ai",
+                    educationLevel,
+                    classYear,
+                    language,
+                    location: "Rural District, India",
+                    profileCompleted: true
+                });
+                showToast("Registration successful! Welcome to CareerBridge AI.");
+                setCurrentTab('dashboard');
+            };
+
+            return (
+                <div className="max-w-lg mx-auto px-4 py-12 flex-1 w-full flex flex-col justify-center">
+                    <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-xl">
+                        <div className="text-center mb-8">
+                            <h2 className="text-2xl font-extrabold text-slate-900">Create Your Student Account</h2>
+                            <p className="text-sm text-slate-600 mt-1">Start your journey to the right career</p>
+                        </div>
+
+                        <form onSubmit={handleRegister} className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Full Name</label>
+                                <input
+                                    type="text"
+                                    required
+                                    placeholder="e.g. Rahul Kumar"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Email Address</label>
+                                <input
+                                    type="email"
+                                    required
+                                    placeholder="rahul@example.com"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Password</label>
+                                <input
+                                    type="password"
+                                    required
+                                    placeholder="••••••••"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Education Level</label>
+                                    <select
+                                        value={educationLevel}
+                                        onChange={(e) => setEducationLevel(e.target.value)}
+                                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-3 text-sm"
+                                    >
+                                        <option>School (Class 10)</option>
+                                        <option>Higher Secondary (Class 12)</option>
+                                        <option>College Undergraduate</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Class / Year</label>
+                                    <input
+                                        type="text"
+                                        value={classYear}
+                                        onChange={(e) => setClassYear(e.target.value)}
+                                        className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-3 text-sm"
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Preferred Language</label>
+                                <select
+                                    value={language}
+                                    onChange={(e) => setLanguage(e.target.value)}
+                                    className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-3 text-sm"
+                                >
+                                    <option value="English">English</option>
+                                    <option value="Tamil">Tamil (தமிழ் Prep)</option>
+                                    <option value="Hindi">Hindi (हिन्दी Prep)</option>
+                                </select>
+                            </div>
+                            <button
+                                type="submit"
+                                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl shadow-md text-sm transition-colors mt-2"
+                            >
+                                Complete Registration
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            );
+        }
+
+        // Mount React App
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
